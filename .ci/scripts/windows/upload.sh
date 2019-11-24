@@ -9,7 +9,7 @@ COMPRESSION_FLAGS="-czvf"
 if [ "${RELEASE_NAME}" = "mainline" ]; then
     DIR_NAME="${REV_NAME}"
 else
-    DIR_NAME="${REV_NAME}_${RELEASE_NAME}"
+    DIR_NAME="${REV_NAME}_TES123"
 fi
 
 mkdir "$DIR_NAME"
