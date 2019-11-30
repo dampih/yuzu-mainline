@@ -12,9 +12,6 @@ jobs:
       windows:
         BuildSuffix: 'windows-mingw'
         ScriptFolder: 'windows'
-      linux:
-        BuildSuffix: 'linux'
-        ScriptFolder: 'linux'
   steps:
   - template: ./sync-source.yml
     parameters:
