@@ -588,8 +588,7 @@ static ResultCode ArbitrateUnlock(Core::System& system, VAddr mutex_addr) {
     }
 
     auto* const current_process = system.Kernel().CurrentProcess();
-    return current_process->GetMutex().Release(mutex_addr,
-                                               system.CurrentScheduler().GetCurrentThread());
+    return current_process->GetMutex().Release(mutex_addr);
 }
 
 enum class BreakType : u32 {
@@ -1629,13 +1628,12 @@ static ResultCode WaitProcessWideKeyAtomic(Core::System& system, VAddr mutex_add
     std::shared_ptr<Thread> thread = handle_table.Get<Thread>(thread_handle);
     ASSERT(thread);
 
-    Thread* current_thread = system.CurrentScheduler().GetCurrentThread();
-
-    const auto release_result = current_process->GetMutex().Release(mutex_addr, current_thread);
+    const auto release_result = current_process->GetMutex().Release(mutex_addr);
     if (release_result.IsError()) {
         return release_result;
     }
 
+    Thread* current_thread = system.CurrentScheduler().GetCurrentThread();
     current_thread->SetCondVarWaitAddress(condition_variable_addr);
     current_thread->SetMutexWaitAddress(mutex_addr);
     current_thread->SetWaitHandle(thread_handle);

@@ -1869,6 +1869,10 @@ private:
         return {};
     }
 
+    Expression InvocationId(Operation operation) {
+        return {"gl_InvocationID", Type::Int};
+    }
+
     Expression YNegate(Operation operation) {
         return {"y_direction", Type::Float};
     }
@@ -2104,6 +2108,7 @@ private:
         &GLSLDecompiler::EmitVertex,
         &GLSLDecompiler::EndPrimitive,
 
+        &GLSLDecompiler::InvocationId,
         &GLSLDecompiler::YNegate,
         &GLSLDecompiler::LocalInvocationId<0>,
         &GLSLDecompiler::LocalInvocationId<1>,

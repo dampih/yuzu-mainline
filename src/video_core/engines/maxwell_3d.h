@@ -491,6 +491,23 @@ public:
             INSERT_UNION_PADDING_WORDS(1);
         };
 
+        enum class DepthMode : u32 {
+            MinusOneToOne = 0,
+            ZeroToOne = 1,
+        };
+
+        enum class TessellationPrimitive : u32 {
+            Isolines = 0,
+            Triangles = 1,
+            Quads = 2,
+        };
+
+        enum class TessellationSpacing : u32 {
+            Equal = 0,
+            FractionalOdd = 1,
+            FractionalEven = 2,
+        };
+
         struct RenderTargetConfig {
             u32 address_high;
             u32 address_low;
@@ -628,7 +645,19 @@ public:
                     };
                 } sync_info;
 
-                INSERT_UNION_PADDING_WORDS(0x11E);
+                INSERT_UNION_PADDING_WORDS(0x15);
+
+                union {
+                    BitField<0, 2, TessellationPrimitive> prim;
+                    BitField<4, 2, TessellationSpacing> spacing;
+                    BitField<8, 1, u32> cw;
+                    BitField<9, 1, u32> connected;
+                } tess_mode;
+
+                std::array<f32, 4> tess_level_outer;
+                std::array<f32, 2> tess_level_inner;
+
+                INSERT_UNION_PADDING_WORDS(0x102);
 
                 u32 tfb_enabled;
 
@@ -647,7 +676,7 @@ public:
                     u32 count;
                 } vertex_buffer;
 
-                INSERT_UNION_PADDING_WORDS(1);
+                DepthMode depth_mode;
 
                 float clear_color[4];
                 float clear_depth;
@@ -662,7 +691,9 @@ public:
                 u32 polygon_offset_line_enable;
                 u32 polygon_offset_fill_enable;
 
-                INSERT_UNION_PADDING_WORDS(0xD);
+                u32 patch_vertices;
+
+                INSERT_UNION_PADDING_WORDS(0xC);
 
                 std::array<ScissorTest, NumViewports> scissor_test;
 
@@ -676,13 +707,15 @@ public:
 
                 u32 color_mask_common;
 
-                INSERT_UNION_PADDING_WORDS(0x6);
-
-                u32 rt_separate_frag_data;
+                INSERT_UNION_PADDING_WORDS(0x2);
 
                 f32 depth_bounds[2];
 
-                INSERT_UNION_PADDING_WORDS(0xA);
+                INSERT_UNION_PADDING_WORDS(0x2);
+
+                u32 rt_separate_frag_data;
+
+                INSERT_UNION_PADDING_WORDS(0xC);
 
                 struct {
                     u32 address_high;
@@ -999,7 +1032,12 @@ public:
                     BitField<4, 1, u32> depth_clamp_far;
                 } view_volume_clip_control;
 
-                INSERT_UNION_PADDING_WORDS(0x21);
+                INSERT_UNION_PADDING_WORDS(0x1F);
+
+                u32 depth_bounds_enable;
+
+                INSERT_UNION_PADDING_WORDS(1);
+
                 struct {
                     u32 enable;
                     LogicOperation operation;
@@ -1334,7 +1372,7 @@ private:
     void InitDirtySettings();
 
     /**
-     * Call a macro on this engine.
+     * Pass a macro on this engine.
      * @param method Method to call
      * @param num_parameters Number of arguments
      * @param parameters Arguments to the method call
@@ -1386,24 +1424,29 @@ ASSERT_REG_POSITION(upload, 0x60);
 ASSERT_REG_POSITION(exec_upload, 0x6C);
 ASSERT_REG_POSITION(data_upload, 0x6D);
 ASSERT_REG_POSITION(sync_info, 0xB2);
+ASSERT_REG_POSITION(tess_mode, 0xC8);
+ASSERT_REG_POSITION(tess_level_outer, 0xC9);
+ASSERT_REG_POSITION(tess_level_inner, 0xCD);
 ASSERT_REG_POSITION(tfb_enabled, 0x1D1);
 ASSERT_REG_POSITION(rt, 0x200);
 ASSERT_REG_POSITION(viewport_transform, 0x280);
 ASSERT_REG_POSITION(viewports, 0x300);
 ASSERT_REG_POSITION(vertex_buffer, 0x35D);
+ASSERT_REG_POSITION(depth_mode, 0x35F);
 ASSERT_REG_POSITION(clear_color[0], 0x360);
 ASSERT_REG_POSITION(clear_depth, 0x364);
 ASSERT_REG_POSITION(clear_stencil, 0x368);
 ASSERT_REG_POSITION(polygon_offset_point_enable, 0x370);
 ASSERT_REG_POSITION(polygon_offset_line_enable, 0x371);
 ASSERT_REG_POSITION(polygon_offset_fill_enable, 0x372);
+ASSERT_REG_POSITION(patch_vertices, 0x373);
 ASSERT_REG_POSITION(scissor_test, 0x380);
 ASSERT_REG_POSITION(stencil_back_func_ref, 0x3D5);
 ASSERT_REG_POSITION(stencil_back_func_mask, 0x3D6);
 ASSERT_REG_POSITION(stencil_back_mask, 0x3D7);
 ASSERT_REG_POSITION(color_mask_common, 0x3E4);
+ASSERT_REG_POSITION(depth_bounds, 0x3E7);
 ASSERT_REG_POSITION(rt_separate_frag_data, 0x3EB);
-ASSERT_REG_POSITION(depth_bounds, 0x3EC);
 ASSERT_REG_POSITION(zeta, 0x3F8);
 ASSERT_REG_POSITION(clear_flags, 0x43E);
 ASSERT_REG_POSITION(vertex_attrib_format, 0x458);
@@ -1459,6 +1502,7 @@ ASSERT_REG_POSITION(cull, 0x646);
 ASSERT_REG_POSITION(pixel_center_integer, 0x649);
 ASSERT_REG_POSITION(viewport_transform_enabled, 0x64B);
 ASSERT_REG_POSITION(view_volume_clip_control, 0x64F);
+ASSERT_REG_POSITION(depth_bounds_enable, 0x66F);
 ASSERT_REG_POSITION(logic_op, 0x671);
 ASSERT_REG_POSITION(clear_buffers, 0x674);
 ASSERT_REG_POSITION(color_mask, 0x680);

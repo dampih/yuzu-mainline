@@ -29,7 +29,7 @@ public:
                           Handle requesting_thread_handle);
 
     /// Releases the mutex at the specified address.
-    ResultCode Release(VAddr address, Thread* holding_thread);
+    ResultCode Release(VAddr address);
 
 private:
     Core::System& system;
